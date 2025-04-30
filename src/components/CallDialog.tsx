@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import FriendCharacter from './FriendCharacter';
@@ -7,6 +6,7 @@ import NumberActivity from './NumberActivity';
 import AlphabetActivity from './AlphabetActivity';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, PhoneCall } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type CallDialogProps = {
   isOpen: boolean;
