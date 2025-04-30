@@ -14,12 +14,23 @@ const NumberActivity = ({
   className
 }: NumberActivityProps) => {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
+  const [showHint, setShowHint] = useState(false);
   
   // Create an array of numbers 1-10 for the child to choose from
   const numbers = Array.from({ length: 10 }, (_, i) => i + 1);
   
-  // Shuffle the numbers to display in random order
-  const shuffledNumbers = [...numbers].sort(() => Math.random() - 0.5);
+  // Shuffle the numbers but ensure we only show 6 options including the correct one
+  const getShuffledOptions = () => {
+    const shuffled = [...numbers].sort(() => Math.random() - 0.5);
+    // Make sure the current number is included
+    if (!shuffled.slice(0, 6).includes(currentNumber)) {
+      const randomIndex = Math.floor(Math.random() * 6);
+      shuffled[randomIndex] = currentNumber;
+    }
+    return shuffled.slice(0, 6);
+  };
+  
+  const shuffledNumbers = getShuffledOptions();
   
   const handleNumberSelect = (number: number) => {
     setSelectedNumber(number);
@@ -29,9 +40,25 @@ const NumberActivity = ({
       setTimeout(() => {
         onCorrectAnswer();
         setSelectedNumber(null);
+        setShowHint(false);
+      }, 1000);
+    } else {
+      // If wrong answer, show a hint after a few attempts
+      setTimeout(() => {
+        setSelectedNumber(null);
+        setShowHint(true);
       }, 1000);
     }
   };
+
+  // After a few seconds of no activity, show a subtle hint
+  React.useEffect(() => {
+    const hintTimer = setTimeout(() => {
+      setShowHint(true);
+    }, 5000);
+    
+    return () => clearTimeout(hintTimer);
+  }, [currentNumber]);
   
   return (
     <div className={cn('p-4 rounded-3xl bg-white shadow-lg', className)}>
@@ -40,20 +67,27 @@ const NumberActivity = ({
       </h2>
       
       <div className="grid grid-cols-3 gap-4">
-        {shuffledNumbers.map(number => (
-          <button
-            key={number}
-            onClick={() => handleNumberSelect(number)}
-            className={cn(
-              'w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-md',
-              selectedNumber === number && number === currentNumber ? 'bg-kidblue text-white animate-bounce-light' : 
-              selectedNumber === number ? 'bg-kidred text-white' : 
-              'bg-kidsoftgreen hover:bg-kidsoftyellow'
-            )}
-          >
-            {number}
-          </button>
-        ))}
+        {shuffledNumbers.map(number => {
+          const isCurrentNumber = number === currentNumber;
+          const isSelected = selectedNumber === number;
+          const shouldPulse = showHint && isCurrentNumber;
+          
+          return (
+            <button
+              key={number}
+              onClick={() => handleNumberSelect(number)}
+              className={cn(
+                'w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-md',
+                isSelected && isCurrentNumber ? 'bg-kidblue text-white animate-bounce-light' : 
+                isSelected ? 'bg-kidred text-white' : 
+                'bg-kidsoftgreen hover:bg-kidsoftyellow',
+                shouldPulse && 'animate-pulse-ring'
+              )}
+            >
+              {number}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, PhoneCall, PhoneOff } from 'lucide-react';
+import { Phone, PhoneCall, PhoneOff, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type PhoneInterfaceProps = {
@@ -8,13 +8,17 @@ type PhoneInterfaceProps = {
   onAnswer?: () => void;
   onHangup?: () => void;
   className?: string;
+  onMuteToggle?: () => void;
+  isMuted?: boolean;
 };
 
 const PhoneInterface = ({
   status,
   onAnswer,
   onHangup,
-  className
+  className,
+  onMuteToggle,
+  isMuted = false
 }: PhoneInterfaceProps) => {
   return (
     <div className={cn('flex flex-col items-center justify-center gap-4', className)}>
@@ -39,19 +43,36 @@ const PhoneInterface = ({
         {status === 'ringing' && (
           <button 
             onClick={onAnswer}
-            className="bg-kidblue text-white rounded-full p-4 shadow-lg hover:bg-opacity-90"
+            className="bg-kidblue text-white rounded-full p-4 shadow-lg hover:bg-opacity-90 animate-pulse"
+            aria-label="Answer call"
           >
             <PhoneCall size={36} />
           </button>
         )}
         
         {(status === 'calling' || status === 'talking') && (
-          <button 
-            onClick={onHangup}
-            className="bg-kidred text-white rounded-full p-4 shadow-lg hover:bg-opacity-90"
-          >
-            <PhoneOff size={36} />
-          </button>
+          <>
+            <button 
+              onClick={onHangup}
+              className="bg-kidred text-white rounded-full p-4 shadow-lg hover:bg-opacity-90"
+              aria-label="End call"
+            >
+              <PhoneOff size={36} />
+            </button>
+            
+            {onMuteToggle && (
+              <button
+                onClick={onMuteToggle}
+                className={cn(
+                  "rounded-full p-4 shadow-lg",
+                  isMuted ? "bg-gray-500 text-white" : "bg-kidgreen text-white"
+                )}
+                aria-label={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={36} /> : <Volume2 size={36} />}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

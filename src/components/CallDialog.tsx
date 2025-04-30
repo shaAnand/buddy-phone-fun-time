@@ -5,6 +5,8 @@ import FriendCharacter from './FriendCharacter';
 import PhoneInterface from './PhoneInterface';
 import NumberActivity from './NumberActivity';
 import AlphabetActivity from './AlphabetActivity';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, PhoneCall } from 'lucide-react';
 
 type CallDialogProps = {
   isOpen: boolean;
@@ -19,7 +21,8 @@ const CallDialog = ({
 }: CallDialogProps) => {
   const [callState, setCallState] = useState<'ringing' | 'answered' | 'activity' | 'completed'>('ringing');
   const [activityStage, setActivityStage] = useState(0);
-  const [characterMood, setCharacterMood] = useState<'happy' | 'thinking' | 'excited'>('happy');
+  const [characterMood, setCharacterMood] = useState<'happy' | 'thinking' | 'excited' | 'waiting'>('happy');
+  const [showCelebration, setShowCelebration] = useState(false);
   
   // Audio elements
   const [ringSound] = useState(new Audio('/ring.mp3'));
@@ -31,6 +34,16 @@ const CallDialog = ({
   
   // For alphabet activity
   const letterSequence = ['A', 'B', 'C', 'D', 'E'];
+
+  // Reset state when dialog opens or closes
+  useEffect(() => {
+    if (isOpen) {
+      setCallState('ringing');
+      setActivityStage(0);
+      setCharacterMood('happy');
+      setShowCelebration(false);
+    }
+  }, [isOpen]);
   
   useEffect(() => {
     // Play ringing sound when dialog opens
@@ -65,9 +78,11 @@ const CallDialog = ({
   const handleCorrectAnswer = () => {
     correctSound.play().catch(e => console.log('Audio play error:', e));
     setCharacterMood('excited');
+    setShowCelebration(true);
     
     // Move to next question or complete the activity
     setTimeout(() => {
+      setShowCelebration(false);
       if (activityStage < (activityType === 'numbers' ? numberSequence.length - 1 : letterSequence.length - 1)) {
         setActivityStage(prev => prev + 1);
         setCharacterMood('happy');
@@ -81,7 +96,9 @@ const CallDialog = ({
   const getMessage = () => {
     if (callState === 'ringing') return "Your friend is calling!";
     if (callState === 'answered') return "Hello! Let's learn something fun!";
-    if (callState === 'completed') return "Great job! You did it!";
+    if (callState === 'completed') return activityType === 'numbers' ? 
+      "Great job counting! You did it!" : 
+      "You know your letters! That's amazing!";
     
     // Messages during the activity
     if (activityType === 'numbers') {
@@ -90,20 +107,53 @@ const CallDialog = ({
       return `Can you find letter ${letterSequence[activityStage]}?`;
     }
   };
+
+  // Progress indicator
+  const renderProgress = () => {
+    if (callState !== 'activity') return null;
+    
+    const total = activityType === 'numbers' ? numberSequence.length : letterSequence.length;
+    
+    return (
+      <div className="flex items-center justify-center gap-2 my-2">
+        {Array.from({ length: total }).map((_, idx) => (
+          <div 
+            key={idx} 
+            className={cn(
+              "w-3 h-3 rounded-full",
+              idx <= activityStage ? "bg-kidorange" : "bg-gray-300"
+            )}
+          />
+        ))}
+      </div>
+    );
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="bg-kidsoftyellow p-8 rounded-3xl border-4 border-kidorange max-w-md">
         <div className="flex flex-col items-center gap-6">
+          {/* Celebration overlay */}
+          {showCelebration && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="text-6xl animate-bounce-light">
+                <CheckCircle className="text-kidgreen w-20 h-20" />
+              </div>
+            </div>
+          )}
+          
           <FriendCharacter 
             size="lg" 
             mood={characterMood} 
             className="mb-4"
+            animated={callState !== 'ringing'}
           />
           
           <div className="bubble bg-white text-center p-4 rounded-3xl max-w-[80%]">
             <p className="text-xl">{getMessage()}</p>
           </div>
+          
+          {renderProgress()}
           
           {callState === 'ringing' && (
             <PhoneInterface 
@@ -130,12 +180,34 @@ const CallDialog = ({
           )}
           
           {callState === 'completed' && (
-            <button
-              onClick={handleHangup}
-              className="btn-kid bg-kidblue text-white"
-            >
-              Bye bye!
-            </button>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex gap-3">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <div key={idx} className="text-2xl animate-bounce-light" style={{ animationDelay: `${idx * 0.1}s` }}>
+                    ⭐
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleHangup}
+                  className="bg-kidblue text-white rounded-full px-6 py-2"
+                >
+                  Bye bye!
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    setActivityStage(0);
+                    setCallState('activity');
+                  }}
+                  className="bg-kidgreen text-white rounded-full px-6 py-2"
+                >
+                  Play again!
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </DialogContent>
