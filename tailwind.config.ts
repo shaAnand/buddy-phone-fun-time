@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Kid-friendly colors
+				kidblue: '#1EAEDB',
+				kidpurple: '#8B5CF6',
+				kidorange: '#F97316',
+				kidpink: '#D946EF',
+				kidred: '#ea384c',
+				kidsoftgreen: '#F2FCE2',
+				kidsoftyellow: '#FEF7CD',
+				kidsoftpink: '#FFDEE2',
+				kidsoftblue: '#D3E4FD',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -70,25 +81,38 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'bounce-light': {
+					'0%, 100%': { transform: 'translateY(-5%)' },
+					'50%': { transform: 'translateY(0)' }
+				},
+				'pulse-ring': {
+					'0%': { transform: 'scale(0.8)', opacity: '0.8' },
+					'50%': { transform: 'scale(1)', opacity: '0.4' },
+					'100%': { transform: 'scale(0.8)', opacity: '0.8' }
+				},
+				'ring-phone': {
+					'0%, 100%': { transform: 'rotate(-10deg)' },
+					'50%': { transform: 'rotate(10deg)' }
+				},
+				'appear': {
+					'0%': { opacity: '0', transform: 'scale(0.9)' },
+					'100%': { opacity: '1', transform: 'scale(1)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'bounce-light': 'bounce-light 2s ease-in-out infinite',
+				'pulse-ring': 'pulse-ring 1.5s infinite',
+				'ring-phone': 'ring-phone 0.5s ease-in-out infinite',
+				'appear': 'appear 0.3s ease-out forwards'
 			}
 		}
 	},
