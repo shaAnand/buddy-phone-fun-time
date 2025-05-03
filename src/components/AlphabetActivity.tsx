@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type AlphabetActivityProps = {
   currentLetter: string;
@@ -15,6 +16,7 @@ const AlphabetActivity = ({
 }: AlphabetActivityProps) => {
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const isMobile = useIsMobile();
   
   // Create letters array (first 6 letters for simplicity)
   const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -79,18 +81,18 @@ const AlphabetActivity = ({
   };
   
   return (
-    <div className={cn('p-4 rounded-3xl bg-white shadow-lg', className)}>
-      <h2 className="text-2xl font-bold text-center mb-2">
+    <div className={cn('p-3 sm:p-4 rounded-3xl bg-white shadow-lg', className)}>
+      <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">
         Find letter {currentLetter}
       </h2>
       
       {showHint && (
         <div className="text-center mb-2">
-          <p className="text-xl">{currentLetter} is for {getLetterExample(currentLetter)}</p>
+          <p className="text-base sm:text-xl">{currentLetter} is for {getLetterExample(currentLetter)}</p>
         </div>
       )}
       
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {shuffledLetters.map(letter => {
           const isCurrentLetter = letter === currentLetter;
           const isSelected = selectedLetter === letter;
@@ -101,7 +103,7 @@ const AlphabetActivity = ({
               key={letter}
               onClick={() => handleLetterSelect(letter)}
               className={cn(
-                'w-20 h-20 rounded-full flex flex-col items-center justify-center text-3xl font-bold shadow-md',
+                'w-14 h-14 sm:w-20 sm:h-20 rounded-full flex flex-col items-center justify-center text-2xl sm:text-3xl font-bold shadow-md',
                 isSelected && isCurrentLetter ? 'bg-kidorange text-white animate-bounce-light' : 
                 isSelected ? 'bg-kidred text-white' : 
                 'bg-kidsoftyellow hover:bg-kidsoftgreen',
@@ -110,7 +112,7 @@ const AlphabetActivity = ({
             >
               <span>{letter}</span>
               {showHint && letter === currentLetter && (
-                <span className="text-lg">{getLetterExample(letter)}</span>
+                <span className="text-sm sm:text-lg">{getLetterExample(letter)}</span>
               )}
             </button>
           );

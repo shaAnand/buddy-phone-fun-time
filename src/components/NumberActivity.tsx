@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type NumberActivityProps = {
   currentNumber: number;
@@ -15,6 +16,7 @@ const NumberActivity = ({
 }: NumberActivityProps) => {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const isMobile = useIsMobile();
   
   // Create an array of numbers 1-10 for the child to choose from
   const numbers = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -61,12 +63,12 @@ const NumberActivity = ({
   }, [currentNumber]);
   
   return (
-    <div className={cn('p-4 rounded-3xl bg-white shadow-lg', className)}>
-      <h2 className="text-2xl font-bold text-center mb-4">
+    <div className={cn('p-3 sm:p-4 rounded-3xl bg-white shadow-lg', className)}>
+      <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">
         Find number {currentNumber}
       </h2>
       
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {shuffledNumbers.map(number => {
           const isCurrentNumber = number === currentNumber;
           const isSelected = selectedNumber === number;
@@ -77,7 +79,7 @@ const NumberActivity = ({
               key={number}
               onClick={() => handleNumberSelect(number)}
               className={cn(
-                'w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-md',
+                'w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-md',
                 isSelected && isCurrentNumber ? 'bg-kidblue text-white animate-bounce-light' : 
                 isSelected ? 'bg-kidred text-white' : 
                 'bg-kidsoftgreen hover:bg-kidsoftyellow',
