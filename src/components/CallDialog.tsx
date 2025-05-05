@@ -5,10 +5,13 @@ import FriendCharacter from './FriendCharacter';
 import PhoneInterface from './PhoneInterface';
 import NumberActivity from './NumberActivity';
 import AlphabetActivity from './AlphabetActivity';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, PhoneCall } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import CallDialogProgress from './CallDialogProgress';
+import CallDialogComplete from './CallDialogComplete';
+import MessageBubble from './MessageBubble';
+import { CheckCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCallAudio } from '@/hooks/useCallAudio';
+import { getCallDialogMessage } from '@/utils/callDialogMessages';
 
 type CallDialogProps = {
   isOpen: boolean;
@@ -27,16 +30,14 @@ const CallDialog = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const isMobile = useIsMobile();
   
-  // Audio elements
-  const [ringSound] = useState(new Audio('/ring.mp3'));
-  const [answerSound] = useState(new Audio('/answer.mp3'));
-  const [correctSound] = useState(new Audio('/correct.mp3'));
-  
   // For numbers activity - updated to include numbers 1 through 10
   const numberSequence = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   
   // For alphabet activity
   const letterSequence = ['A', 'B', 'C', 'D', 'E'];
+
+  // Get audio controls
+  const { playAnswerSound, playCorrectSound } = useCallAudio(isOpen, callState);
 
   // Reset state when dialog opens or closes
   useEffect(() => {
@@ -48,24 +49,8 @@ const CallDialog = ({
     }
   }, [isOpen]);
   
-  useEffect(() => {
-    // Play ringing sound when dialog opens
-    if (isOpen && callState === 'ringing') {
-      ringSound.loop = true;
-      ringSound.play().catch(e => console.log('Audio play error:', e));
-    }
-    
-    // Cleanup
-    return () => {
-      ringSound.pause();
-      answerSound.pause();
-      correctSound.pause();
-    };
-  }, [isOpen, callState, ringSound, answerSound, correctSound]);
-  
   const handleAnswerCall = () => {
-    ringSound.pause();
-    answerSound.play().catch(e => console.log('Audio play error:', e));
+    playAnswerSound();
     setCallState('answered');
     
     // Simulate friend greeting before starting activity
@@ -79,7 +64,7 @@ const CallDialog = ({
   };
   
   const handleCorrectAnswer = () => {
-    correctSound.play().catch(e => console.log('Audio play error:', e));
+    playCorrectSound();
     setCharacterMood('excited');
     setShowCelebration(true);
     
@@ -95,42 +80,15 @@ const CallDialog = ({
     }, 1500);
   };
   
-  // Create messages based on the call state
-  const getMessage = () => {
-    if (callState === 'ringing') return "Your friend is calling!";
-    if (callState === 'answered') return "Hello! Let's learn something fun!";
-    if (callState === 'completed') return activityType === 'numbers' ? 
-      "Great job counting to 10! You did it!" : 
-      "You know your letters! That's amazing!";
-    
-    // Messages during the activity
-    if (activityType === 'numbers') {
-      return `Can you find number ${numberSequence[activityStage]}?`;
-    } else {
-      return `Can you find letter ${letterSequence[activityStage]}?`;
-    }
-  };
+  // Get current message
+  const currentMessage = getCallDialogMessage(
+    callState, 
+    activityType, 
+    activityType === 'numbers' ? numberSequence[activityStage] : letterSequence[activityStage]
+  );
 
-  // Progress indicator
-  const renderProgress = () => {
-    if (callState !== 'activity') return null;
-    
-    const total = activityType === 'numbers' ? numberSequence.length : letterSequence.length;
-    
-    return (
-      <div className="flex items-center justify-center gap-1 sm:gap-2 my-2">
-        {Array.from({ length: total }).map((_, idx) => (
-          <div 
-            key={idx} 
-            className={cn(
-              "w-2 h-2 sm:w-3 sm:h-3 rounded-full",
-              idx <= activityStage ? "bg-kidorange" : "bg-gray-300"
-            )}
-          />
-        ))}
-      </div>
-    );
-  };
+  // Get current sequence and total
+  const currentSequence = activityType === 'numbers' ? numberSequence : letterSequence;
   
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
@@ -152,11 +110,11 @@ const CallDialog = ({
             animated={callState !== 'ringing'}
           />
           
-          <div className="bubble bg-white text-center p-2 sm:p-4 rounded-3xl max-w-[90%]">
-            <p className="text-base sm:text-xl">{getMessage()}</p>
-          </div>
+          <MessageBubble message={currentMessage} />
           
-          {renderProgress()}
+          {callState === 'activity' && (
+            <CallDialogProgress total={currentSequence.length} current={activityStage} />
+          )}
           
           {callState === 'ringing' && (
             <PhoneInterface 
@@ -183,34 +141,14 @@ const CallDialog = ({
           )}
           
           {callState === 'completed' && (
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex gap-2 sm:gap-3">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <div key={idx} className="text-xl sm:text-2xl animate-bounce-light" style={{ animationDelay: `${idx * 0.1}s` }}>
-                    ⭐
-                  </div>
-                ))}
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <Button
-                  onClick={handleHangup}
-                  className="bg-kidblue text-white rounded-full px-4 sm:px-6 py-1 sm:py-2"
-                >
-                  Bye bye!
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    setActivityStage(0);
-                    setCallState('activity');
-                  }}
-                  className="bg-kidgreen text-white rounded-full px-4 sm:px-6 py-1 sm:py-2"
-                >
-                  Play again!
-                </Button>
-              </div>
-            </div>
+            <CallDialogComplete 
+              onHangup={handleHangup}
+              onPlayAgain={() => {
+                setActivityStage(0);
+                setCallState('activity');
+              }}
+              activityType={activityType}
+            />
           )}
         </div>
       </DialogContent>
@@ -219,4 +157,3 @@ const CallDialog = ({
 };
 
 export default CallDialog;
-
