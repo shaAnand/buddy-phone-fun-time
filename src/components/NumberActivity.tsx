@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -21,15 +20,51 @@ const NumberActivity = ({
   // Create an array of numbers 1-10 for the child to choose from
   const numbers = Array.from({ length: 10 }, (_, i) => i + 1);
   
-  // Shuffle the numbers but ensure we only show 6 options including the correct one
+  // Shuffle the numbers but ensure we show 6 options including the correct one
+  // For numbers > 6, we'll always include numbers close to the target
   const getShuffledOptions = () => {
-    const shuffled = [...numbers].sort(() => Math.random() - 0.5);
-    // Make sure the current number is included
-    if (!shuffled.slice(0, 6).includes(currentNumber)) {
-      const randomIndex = Math.floor(Math.random() * 6);
-      shuffled[randomIndex] = currentNumber;
+    // If the current number is > 6, we'll include some numbers around it
+    const additionalOptions = [];
+    if (currentNumber > 6) {
+      // Include some numbers close to the target number
+      const lowerBound = Math.max(1, currentNumber - 2);
+      const upperBound = Math.min(10, currentNumber + 2);
+      
+      for (let i = lowerBound; i <= upperBound; i++) {
+        if (i !== currentNumber) {
+          additionalOptions.push(i);
+        }
+      }
     }
-    return shuffled.slice(0, 6);
+    
+    // Shuffle all numbers
+    const shuffled = [...numbers].sort(() => Math.random() - 0.5);
+    
+    // First, get 6 random numbers
+    let selectedOptions = shuffled.slice(0, 6);
+    
+    // Make sure the current number is included
+    if (!selectedOptions.includes(currentNumber)) {
+      const randomIndex = Math.floor(Math.random() * 6);
+      selectedOptions[randomIndex] = currentNumber;
+    }
+    
+    // For higher numbers, ensure we have some numbers close to the target
+    if (currentNumber > 6) {
+      // Replace some random options with numbers close to the target
+      const optionsToAdd = Math.min(2, additionalOptions.length);
+      for (let i = 0; i < optionsToAdd; i++) {
+        if (i < additionalOptions.length) {
+          // Only replace if the option is not already the target number
+          const indexToReplace = selectedOptions.findIndex(n => n !== currentNumber);
+          if (indexToReplace !== -1) {
+            selectedOptions[indexToReplace] = additionalOptions[i];
+          }
+        }
+      }
+    }
+    
+    return selectedOptions;
   };
   
   const shuffledNumbers = getShuffledOptions();

@@ -59,7 +59,7 @@ const Index = () => {
                 </div>
               ))}
             </div>
-            <p className="text-center text-sm sm:text-base">Count with me from 1 to 5!</p>
+            <p className="text-center text-sm sm:text-base">Count with me from 1 to 10!</p>
             <Button 
               className="bg-kidblue hover:bg-blue-600 text-base sm:text-lg font-semibold rounded-full px-4 sm:px-6 py-2 sm:py-6 h-auto"
               onClick={() => handleStartCall('numbers')}

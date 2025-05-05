@@ -32,8 +32,8 @@ const CallDialog = ({
   const [answerSound] = useState(new Audio('/answer.mp3'));
   const [correctSound] = useState(new Audio('/correct.mp3'));
   
-  // For numbers activity
-  const numberSequence = [1, 2, 3, 4, 5];
+  // For numbers activity - updated to include numbers 1 through 10
+  const numberSequence = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   
   // For alphabet activity
   const letterSequence = ['A', 'B', 'C', 'D', 'E'];
@@ -100,7 +100,7 @@ const CallDialog = ({
     if (callState === 'ringing') return "Your friend is calling!";
     if (callState === 'answered') return "Hello! Let's learn something fun!";
     if (callState === 'completed') return activityType === 'numbers' ? 
-      "Great job counting! You did it!" : 
+      "Great job counting to 10! You did it!" : 
       "You know your letters! That's amazing!";
     
     // Messages during the activity
@@ -219,3 +219,4 @@ const CallDialog = ({
 };
 
 export default CallDialog;
+
